@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kamarooms — Building in Open</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card: #141414;
+    --border: #222;
+    --text: #e0e0e0;
+    --muted: #888;
+    --accent: #4ecdc4;
+    --accent2: #ff6b6b;
+    --gold: #ffd93d;
+    --green: #4ecdc4;
+    --red: #ff6b6b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  header {
+    text-align: center;
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  header .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  header .location {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .lang-toggle {
+    display: inline-flex;
+    gap: 0;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .lang-toggle button {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 640px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .kpi-label {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-change {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .kpi-change.up { color: var(--green); }
+  .kpi-change.down { color: var(--red); }
+  .kpi-target {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* Secondary row */
+  .kpi-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  /* Charts */
+  .chart-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .chart-section h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .chart-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chart-tabs button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chart-tabs button.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .chart-wrapper {
+    position: relative;
+    height: 300px;
+  }
+
+  /* AI Operations Log */
+  .ai-log {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .ai-log h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ai-log-entry {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .ai-log-entry:last-child { border-bottom: none; }
+  .ai-log-entry .timestamp {
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ai-log-entry .action {
+    margin-top: 4px;
+  }
+  .ai-log .coming-soon {
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    padding: 32px 0;
+  }
+
+  /* Ratings */
+  .ratings-bar {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .rating-badge {
+    text-align: center;
+  }
+  .rating-badge .platform {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .rating-badge .score {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .rating-badge .scale {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* Why section */
+  .why-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .why-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .why-section p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 600px;
+    margin: 0 auto 12px;
+    line-height: 1.7;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Kamarooms</h1>
+  <div class="subtitle" data-en="Building in Open — Live Hotel Performance" data-ru="Строим открыто — Показатели отеля в реальном времени">Building in Open — Live Hotel Performance</div>
+  <div class="location">Naberezhnye Chelny, Tatarstan · 108 rooms · 4★</div>
+  <div class="lang-toggle">
+    <button class="active" onclick="setLang('en')">EN</button>
+    <button onclick="setLang('ru')">RU</button>
+  </div>
+</header>
+
+<!-- Core KPIs -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="RevPAR" data-ru="Доход на номер">RevPAR</div>
+    <div class="kpi-value">4 664 ₽</div>
+    <div class="kpi-change down">-9.0% MoM</div>
+    <div class="kpi-target" data-en="Target: 5,500 ₽" data-ru="Цель: 5 500 ₽">Target: 5,500 ₽</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="Occupancy" data-ru="Загрузка">Occupancy</div>
+    <div class="kpi-value">67.6%</div>
+    <div class="kpi-change down">-6.0pp MoM</div>
+    <div class="kpi-target" data-en="Target: 75%" data-ru="Цель: 75%">Target: 75%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="ADR" data-ru="Средний тариф">ADR</div>
+    <div class="kpi-value">6 783 ₽</div>
+    <div class="kpi-change down">-0.4% MoM</div>
+    <div class="kpi-target" data-en="Target: 7,200 ₽" data-ru="Цель: 7 200 ₽">Target: 7,200 ₽</div>
+  </div>
+</div>
+
+<div class="kpi-row-2">
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="Direct Booking %" data-ru="Прямые бронирования">Direct Booking %</div>
+    <div class="kpi-value" style="color: var(--muted);">—</div>
+    <div class="kpi-target" data-en="Target: 35% · Data collection starting" data-ru="Цель: 35% · Сбор данных начинается">Target: 35% · Data collection starting</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="Guest Rating" data-ru="Рейтинг гостей">Guest Rating</div>
+    <div class="ratings-bar">
+      <div class="rating-badge">
+        <div class="platform">Booking.com</div>
+        <div class="score">9.4</div>
+        <div class="scale">/ 10</div>
+      </div>
+      <div class="rating-badge">
+        <div class="platform">Yandex</div>
+        <div class="score">5.0</div>
+        <div class="scale">/ 5</div>
+      </div>
+      <div class="rating-badge">
+        <div class="platform">2GIS</div>
+        <div class="score">4.8</div>
+        <div class="scale">/ 5</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YTD Summary -->
+<div class="kpi-grid" style="margin-bottom: 32px;">
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="YTD Revenue (11mo)" data-ru="Выручка за 11 мес.">YTD Revenue (11mo)</div>
+    <div class="kpi-value" style="font-size: 24px;">172.7M ₽</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="Operating Profit" data-ru="Операционная прибыль">Operating Profit</div>
+    <div class="kpi-value" style="font-size: 24px;">36.3M ₽</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label" data-en="Operating Margin" data-ru="Рентабельность">Operating Margin</div>
+    <div class="kpi-value" style="font-size: 24px;">21.0%</div>
+  </div>
+</div>
+
+<!-- Monthly Trend Charts -->
+<div class="chart-section">
+  <h3 data-en="Monthly Performance — 2025" data-ru="Ежемесячная динамика — 2025">Monthly Performance — 2025</h3>
+  <div class="chart-tabs">
+    <button class="active" onclick="showChart('revpar')">RevPAR</button>
+    <button onclick="showChart('occupancy')">Occupancy</button>
+    <button onclick="showChart('adr')">ADR</button>
+    <button onclick="showChart('revenue')" data-en="Revenue" data-ru="Выручка">Revenue</button>
+    <button onclick="showChart('margin')" data-en="Margin" data-ru="Рентабельность">Margin</button>
+  </div>
+  <div class="chart-wrapper">
+    <canvas id="mainChart"></canvas>
+  </div>
+</div>
+
+<!-- Historical Margin Chart -->
+<div class="chart-section">
+  <h3 data-en="10-Year Margin Trend — The Recovery Story" data-ru="Динамика рентабельности за 10 лет — История восстановления">10-Year Margin Trend — The Recovery Story</h3>
+  <div class="chart-wrapper">
+    <canvas id="historyChart"></canvas>
+  </div>
+</div>
+
+<!-- AI Operations Log -->
+<div class="ai-log">
+  <h3>
+    <span style="font-size: 18px;">&#x1f916;</span>
+    <span data-en="AI Operations Log" data-ru="Журнал AI-операций">AI Operations Log</span>
+  </h3>
+  <div class="coming-soon" data-en="AI agents launching soon. This section will show real-time actions — rate adjustments, guest responses, anomaly alerts — as they happen." data-ru="AI-агенты запускаются скоро. Здесь будут отображаться действия в реальном времени — корректировки тарифов, ответы гостям, предупреждения об аномалиях.">
+    AI agents launching soon. This section will show real-time actions — rate adjustments, guest responses, anomaly alerts — as they happen.
+  </div>
+</div>
+
+<!-- Why We Share This -->
+<div class="why-section">
+  <h3 data-en="Why We Share This" data-ru="Почему мы это показываем">Why We Share This</h3>
+  <p data-en="Kamarooms is building the first AI-native hotel operating system. We publish our real numbers because transparency builds trust — with guests, partners, and future franchise operators." data-ru="Камарумс создаёт первую AI-нативную систему управления отелем. Мы публикуем реальные цифры, потому что прозрачность создаёт доверие — с гостями, партнёрами и будущими франчайзи.">
+    Kamarooms is building the first AI-native hotel operating system. We publish our real numbers because transparency builds trust — with guests, partners, and future franchise operators.
+  </p>
+  <p data-en="No other hotel does this. That's the point." data-ru="Ни один другой отель этого не делает. В этом и суть.">
+    No other hotel does this. That's the point.
+  </p>
+</div>
+
+<footer>
+  <p data-en="Last updated: 2026-03-19 12:53 · Data refreshes daily" data-ru="Обновлено: 2026-03-19 12:53 · Данные обновляются ежедневно">Last updated: 2026-03-19 12:53 · Data refreshes daily</p>
+  <p style="margin-top: 8px;"><a href="https://kamarooms.com">kamarooms.com</a></p>
+</footer>
+
+</div>
+
+<script>
+// Chart data
+const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
+const labelsRu = ["\u042f\u043d\u0432", "\u0424\u0435\u0432", "\u041c\u0430\u0440", "\u0410\u043f\u0440", "\u041c\u0430\u0439", "\u0418\u044e\u043d", "\u0418\u044e\u043b", "\u0410\u0432\u0433", "\u0421\u0435\u043d", "\u041e\u043a\u0442", "\u041d\u043e\u044f"];
+const datasets = {
+  revpar: { data: [3443, 5041, 4508, 3986, 4070, 4754, 4891, 5135, 5414, 5268, 4793], label: 'RevPAR (₽)', color: '#4ecdc4', suffix: ' ₽' },
+  occupancy: { data: [53, 72, 66, 59, 58, 69, 72, 76, 77, 74, 68], label: 'Occupancy (%)', color: '#ffd93d', suffix: '%' },
+  adr: { data: [6505, 6413, 6786, 6771, 6678, 6711, 6767, 6792, 6996, 7112, 7084], label: 'ADR (₽)', color: '#ff6b6b', suffix: ' ₽' },
+  revenue: { data: [11.9, 14.4, 15.9, 13.3, 13.9, 16.0, 16.8, 17.6, 18.3, 18.5, 16.1], label: 'Revenue (M ₽)', color: '#a78bfa', suffix: 'M ₽' },
+  margin: { data: [15.7, 28.0, 18.0, 10.1, 18.9, 14.7, 20.0, 24.1, 26.9, 27.9, 21.7], label: 'Margin (%)', color: '#4ecdc4', suffix: '%' }
+};
+
+let mainChart = null;
+let currentMetric = 'revpar';
+
+function createChart(metric) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const ds = datasets[metric];
+
+  if (mainChart) mainChart.destroy();
+
+  mainChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: ds.label,
+        data: ds.data,
+        borderColor: ds.color,
+        backgroundColor: ds.color + '20',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: ds.color,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          titleColor: '#e0e0e0',
+          bodyColor: '#e0e0e0',
+          borderColor: '#333',
+          borderWidth: 1,
+          callbacks: {
+            label: (ctx) => ctx.parsed.y.toLocaleString() + ds.suffix
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#222' },
+          ticks: { color: '#888' }
+        },
+        y: {
+          grid: { color: '#222' },
+          ticks: {
+            color: '#888',
+            callback: (v) => v.toLocaleString()
+          }
+        }
+      }
+    }
+  });
+}
+
+function showChart(metric) {
+  currentMetric = metric;
+  document.querySelectorAll('.chart-tabs button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  createChart(metric);
+}
+
+// Historical margin chart
+function createHistoryChart() {
+  const ctx = document.getElementById('historyChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2025"],
+      datasets: [
+        {
+          type: 'line',
+          label: 'Operating Margin (%)',
+          data: [34.6, 28.8, 42.7, 40.5, 38.9, 27.1, 31.9, 35.4, 21.0],
+          borderColor: '#ff6b6b',
+          backgroundColor: 'transparent',
+          borderWidth: 3,
+          pointRadius: 6,
+          pointBackgroundColor: [34.6, 28.8, 42.7, 40.5, 38.9, 27.1, 31.9, 35.4, 21.0].map(v => v < 25 ? '#ff6b6b' : '#4ecdc4'),
+          tension: 0.2,
+          yAxisID: 'y1',
+          order: 1
+        },
+        {
+          type: 'bar',
+          label: 'Revenue (M ₽)',
+          data: [34.8, 43.6, 50.1, 81.8, 102.3, 65.1, 104.2, 117.1, 172.7],
+          backgroundColor: '#4ecdc420',
+          borderColor: '#4ecdc4',
+          borderWidth: 1,
+          yAxisID: 'y',
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888' }
+        },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          titleColor: '#e0e0e0',
+          bodyColor: '#e0e0e0',
+          borderColor: '#333',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#222' },
+          ticks: { color: '#888' }
+        },
+        y: {
+          position: 'left',
+          grid: { color: '#222' },
+          ticks: {
+            color: '#888',
+            callback: (v) => v.toFixed(0) + 'M'
+          },
+          title: {
+            display: true,
+            text: 'Revenue (M ₽)',
+            color: '#888'
+          }
+        },
+        y1: {
+          position: 'right',
+          grid: { display: false },
+          ticks: {
+            color: '#888',
+            callback: (v) => v + '%'
+          },
+          title: {
+            display: true,
+            text: 'Margin %',
+            color: '#888'
+          },
+          min: 0,
+          max: 50
+        }
+      }
+    }
+  });
+}
+
+// Language toggle
+let currentLang = 'en';
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.lang-toggle button').forEach(b => {
+    if ((lang === 'en' && b.textContent === 'EN') || (lang === 'ru' && b.textContent === 'RU'))
+      b.classList.add('active');
+  });
+  document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+    el.textContent = el.getAttribute('data-' + lang);
+  });
+}
+
+// Init
+createChart('revpar');
+createHistoryChart();
+</script>
+</body>
+</html>
